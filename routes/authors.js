@@ -52,8 +52,8 @@ router.post('/', async(req, res)=>{
     })
     try{
         const newAuthor = await author.save() //saving the new data to db
-         //res.redirect(`authors/${newAuthor.id}`)
-         res.redirect('authors')
+         res.redirect(`authors/${newAuthor.id}`)
+
     }catch{
         res.render('authors/new', {
             author: author, // we send it even tho there was error creating new author because authors/new is rendering and name of this author object will fill the input bar so that user know what was his last submit
@@ -63,5 +63,63 @@ router.post('/', async(req, res)=>{
 
 })
 
+//:id fill the corresponding id of the clicked author for example if the id is 'abc' then this is route for /authors/abc
+router.get('/:id', (req,res)=>{
+    res.send('Show Author' + req.params.id) //req.params.id extracts the id value from url, for example 'abc'
+})
+
+router.get('/:id/edit', async (req, res) => {
+    try {
+      const author = await Author.findById(req.params.id)
+      res.render('authors/edit', { author: author })
+    } catch {
+      res.redirect('/authors')
+    }
+  })
+
+//from browser we can only make get and post routes, for put and delete we need a library method-override
+//we actually send post request with spectial paramtear that tellls the server to do put/delete based on the parametar
+router.put('/:id', async(req,res)=>{
+    let author
+    try{
+        author = await Author.findById(req.params.id)
+        author.name = req.body.name
+        await author.save()
+         res.redirect(`/authors/${author.id}`)
+    }catch{
+        if(author == null){
+            res.redirect('/')
+        }else{
+            res.render('authors/edit', {
+                author: author, // we send it even tho there was error creating new author because authors/new is rendering and name of this author object will fill the input bar so that user know what was his last submit
+                errorMessage: 'Error updating Author'
+             }); 
+        }
+        
+    }
+})
+
+//since our books reference the author in our base, we can't delete the author
+//that is connected to book in db -> we set up constrains in model
+router.delete('/:id', async (req, res) => {
+    let author
+    try {
+      author = await Author.findById(req.params.id)
+      if (author == null) {
+        console.log("Error finding author")
+        res.redirect('/authors');
+        return;
+      }
+      await author.deleteOne({_id:author.id}) //.remove() does not work
+      res.redirect('/authors')
+    } catch(error) {
+        console.log(error)
+      if (author == null) {
+        res.redirect('/')
+      } else {
+        res.redirect(`/authors/${author.id}`)
+      }
+    }
+  })
 
 module.exports = router
