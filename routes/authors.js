@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router() //.Router() returns new router object
 const Author = require('../models/author')
+const Books = require('../models/book')
 
 //We created model Author that interacts with collection of authors in MongoDB
 //If we want to fetch data from DB we use Author
@@ -64,8 +65,18 @@ router.post('/', async(req, res)=>{
 })
 
 //:id fill the corresponding id of the clicked author for example if the id is 'abc' then this is route for /authors/abc
-router.get('/:id', (req,res)=>{
-    res.send('Show Author' + req.params.id) //req.params.id extracts the id value from url, for example 'abc'
+router.get('/:id', async (req,res)=>{
+    try{
+        const author = await Author.findById(req.params.id)//req.params.id extracts the id value from url, for example 'abc'
+        const books = await Books.find({author:author.id}).limit(6).exec()
+        res.render('authors/show',
+        {
+            author:author,
+            booksByAuthor:books
+        }) 
+    }catch{
+        res.redirect('/')
+    }
 })
 
 router.get('/:id/edit', async (req, res) => {
