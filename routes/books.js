@@ -55,8 +55,8 @@ router.post('/', async(req, res)=>{
 router.get('/:id', async(req,res) => {
     try{
         const book = await Book.findById(req.params.id)
-                                //.populate('author') 
-                               // .exec() //we have to use populate function to "populate" selected value with all information, in our example in book collection author has only id, and with this we are able to get the name also (fetches all author info before fetching the book)
+                                .populate('author') 
+                                .exec() //we have to use populate function to "populate" selected value with all information, in our example in book collection author has only id, and with this we are able to get the name also (fetches all author info before fetching the book)
         //in case I deleted the author before puting constrains, book has author but it's not in the base, in that case don't throw error but return
         if(book.author == null){
             return
